@@ -5,7 +5,14 @@ const FOOTBALL_DATA_BASE = "https://api.football-data.org/v4";
 const WC_COMPETITION_ID = 2000;
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
+  return handleSync(request);
+}
+
+export async function GET(request: Request) {
+  return handleSync(request);
+}
+
+async function handleSync(request: Request) {
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
   if (!apiKey) {
@@ -20,6 +27,7 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  const authHeader = request.headers.get("authorization");
   if (authHeader) {
     const token = authHeader.replace("Bearer ", "");
     const {
@@ -38,7 +46,8 @@ export async function POST(request: Request) {
     }
   } else {
     const cronSecret = request.headers.get("x-cron-secret");
-    if (cronSecret !== process.env.CRON_SECRET) {
+    const isVercelCron = request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
+    if (cronSecret !== process.env.CRON_SECRET && !isVercelCron) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }

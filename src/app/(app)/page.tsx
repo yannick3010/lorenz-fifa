@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { Match, LeaderboardEntry } from "@/lib/supabase/types";
+import { LiveMatches } from "@/components/live-matches";
+import { LiveLeaderboard } from "@/components/live-leaderboard";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -20,6 +22,13 @@ export default async function HomePage() {
     .in("status", ["IN_PLAY", "PAUSED", "HALFTIME"])
     .order("kickoff_time", { ascending: true });
 
+  const { data: recentResults } = await supabase
+    .from("matches")
+    .select("*")
+    .eq("status", "FINISHED")
+    .order("kickoff_time", { ascending: false })
+    .limit(4);
+
   const { data: leaderboard } = await supabase
     .from("leaderboard")
     .select("*")
@@ -35,13 +44,13 @@ export default async function HomePage() {
         </p>
       </div>
 
-      {(liveMatches?.length ?? 0) > 0 && (
+      <LiveMatches initialMatches={(liveMatches as Match[]) ?? []} />
+
+      {(recentResults?.length ?? 0) > 0 && (
         <section>
-          <h2 className="mb-4 text-xl font-semibold text-red-400">
-            Live Now
-          </h2>
+          <h2 className="mb-4 text-xl font-semibold">Recent Results</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {liveMatches!.map((match: Match) => (
+            {recentResults!.map((match: Match) => (
               <MatchCard key={match.id} match={match} />
             ))}
           </div>
@@ -79,48 +88,16 @@ export default async function HomePage() {
             Full standings
           </Link>
         </div>
-        {(leaderboard?.length ?? 0) > 0 ? (
-          <div className="rounded-xl bg-green-900/50 overflow-hidden">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-green-800 text-sm text-green-300">
-                  <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3 text-right">Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaderboard!.map((entry: LeaderboardEntry, i: number) => (
-                  <tr
-                    key={entry.user_id}
-                    className="border-b border-green-800/50 last:border-0"
-                  >
-                    <td className="px-4 py-3 font-mono text-green-400">
-                      {i + 1}
-                    </td>
-                    <td className="px-4 py-3 font-medium">
-                      {entry.display_name}
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold">
-                      {entry.total_points}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-green-400">
-            No predictions yet. Be the first to make one!
-          </p>
-        )}
+        <LiveLeaderboard
+          initialEntries={(leaderboard as LeaderboardEntry[]) ?? []}
+        />
       </section>
     </div>
   );
 }
 
 function MatchCard({ match }: { match: Match }) {
-  const isLive = ["IN_PLAY", "PAUSED", "HALFTIME"].includes(match.status);
+  const isFinished = match.status === "FINISHED";
   const kickoff = new Date(match.kickoff_time);
 
   return (
@@ -129,10 +106,13 @@ function MatchCard({ match }: { match: Match }) {
       className="block rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70"
     >
       <div className="mb-2 flex items-center justify-between text-xs text-green-400">
-        <span>{match.round}{match.match_group ? ` - Group ${match.match_group}` : ""}</span>
-        {isLive ? (
-          <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-            LIVE
+        <span>
+          {match.round}
+          {match.match_group ? ` - Group ${match.match_group}` : ""}
+        </span>
+        {isFinished ? (
+          <span className="rounded-full bg-green-700 px-2 py-0.5 text-xs font-bold text-green-100">
+            FT
           </span>
         ) : (
           <span>
