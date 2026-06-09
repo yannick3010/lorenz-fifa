@@ -24,11 +24,11 @@ export function Countdown({ kickoff }: { kickoff: string }) {
       const seconds = Math.floor((diff / 1000) % 60);
 
       if (days > 0) {
-        setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+        setTimeLeft(`${days}d ${hours}h`);
       } else if (hours > 0) {
-        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+        setTimeLeft(`${hours}h ${minutes}m`);
       } else {
-        setTimeLeft(`${minutes}m ${seconds}s`);
+        setTimeLeft(`${minutes}:${seconds.toString().padStart(2, "0")}`);
       }
 
       setUrgent(diff < 1000 * 60 * 60);
@@ -43,8 +43,8 @@ export function Countdown({ kickoff }: { kickoff: string }) {
 
   return (
     <span
-      className={`font-mono text-sm ${
-        urgent ? "text-red-400 font-semibold" : "text-green-400"
+      className={`font-mono text-xs font-semibold ${
+        urgent ? "text-[var(--fifa-red)]" : "text-[var(--fifa-muted)]"
       }`}
     >
       {timeLeft}

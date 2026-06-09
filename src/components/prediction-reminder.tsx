@@ -64,38 +64,35 @@ export function PredictionReminder() {
         return (
           <div
             key={match.id}
-            className="flex items-center justify-between rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3"
+            className="flex items-center gap-3 rounded-xl border border-[var(--fifa-gold)]/20 bg-[var(--fifa-gold)]/5 px-4 py-3"
           >
-            <div className="flex-1">
-              <span className="text-sm font-semibold text-yellow-300">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-[var(--fifa-gold)]">
                 {minutesUntil < 60
-                  ? `${minutesUntil}m until kickoff`
-                  : `${Math.floor(minutesUntil / 60)}h ${minutesUntil % 60}m until kickoff`}
-              </span>
-              <span className="mx-2 text-yellow-500/50">|</span>
-              <span className="text-sm text-yellow-100">
+                  ? `${minutesUntil}m to kickoff`
+                  : `${Math.floor(minutesUntil / 60)}h ${minutesUntil % 60}m to kickoff`}
+              </p>
+              <p className="truncate text-sm text-white/80">
                 {match.home_team} vs {match.away_team}
-              </span>
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/matches/${match.id}`}
-                className="rounded-lg bg-yellow-500 px-3 py-1.5 text-xs font-bold text-yellow-950 transition hover:bg-yellow-400"
-              >
-                Predict
-              </Link>
-              <button
-                onClick={() =>
-                  setDismissed((prev) => new Set([...prev, match.id]))
-                }
-                className="text-yellow-500/70 hover:text-yellow-300"
-                aria-label="Dismiss"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                </svg>
-              </button>
-            </div>
+            <Link
+              href={`/matches/${match.id}`}
+              className="shrink-0 rounded-lg bg-[var(--fifa-gold)] px-3 py-1.5 text-xs font-bold text-[var(--fifa-navy)] transition hover:brightness-110"
+            >
+              Predict
+            </Link>
+            <button
+              onClick={() =>
+                setDismissed((prev) => new Set([...prev, match.id]))
+              }
+              className="shrink-0 text-[var(--fifa-muted)] hover:text-white"
+              aria-label="Dismiss"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
           </div>
         );
       })}

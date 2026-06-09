@@ -47,6 +47,7 @@ const FLAGS: Record<string, string> = {
   "Switzerland": "ch",
   "Tunisia": "tn",
   "Turkey": "tr",
+  "Türkiye": "tr",
   "USA": "us",
   "United States": "us",
   "Uruguay": "uy",
@@ -55,14 +56,18 @@ const FLAGS: Record<string, string> = {
   "Algeria": "dz",
   "Austria": "at",
   "Bahrain": "bh",
+  "Bosnia-Herzegovina": "ba",
+  "Cape Verde Islands": "cv",
   "China PR": "cn",
   "Congo DR": "cd",
   "Czech Republic": "cz",
   "Czechia": "cz",
+  "Curaçao": "cw",
   "El Salvador": "sv",
   "Finland": "fi",
   "Greece": "gr",
   "Guatemala": "gt",
+  "Haiti": "ht",
   "Honduras": "hn",
   "Hungary": "hu",
   "Iceland": "is",
@@ -81,7 +86,6 @@ const FLAGS: Record<string, string> = {
   "Suriname": "sr",
   "Thailand": "th",
   "Trinidad and Tobago": "tt",
-  "Türkiye": "tr",
   "Ukraine": "ua",
   "Uzbekistan": "uz",
   "Vietnam": "vn",
@@ -96,16 +100,16 @@ export function getFlagUrl(teamName: string): string | null {
 export function TeamName({ name }: { name: string }) {
   const flagUrl = getFlagUrl(name);
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className="inline-flex items-center gap-1.5">
       {flagUrl && (
         <img
           src={flagUrl}
-          alt={`${name} flag`}
-          className="h-4 w-6 rounded-sm object-cover"
+          alt=""
+          className="h-3.5 w-5 rounded-[2px] object-cover"
           loading="lazy"
         />
       )}
-      <span>{name}</span>
+      <span className="text-sm font-semibold text-white">{name}</span>
     </span>
   );
 }

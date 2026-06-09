@@ -47,38 +47,47 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-green-900 via-green-800 to-emerald-900">
-      <div className="w-full max-w-md px-4">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white">Lorenz FIFA</h1>
-          <p className="mt-2 text-green-200">World Cup 2026 Predictions</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--fifa-navy)] px-5">
+      <div className="w-full max-w-sm">
+        <div className="mb-10 text-center">
+          <div className="mb-3 flex items-center justify-center gap-3">
+            <span className="text-3xl font-black tracking-tight text-white">
+              LORENZ
+            </span>
+            <span className="rounded bg-[var(--fifa-blue)] px-2 py-1 text-sm font-bold tracking-widest text-white">
+              26
+            </span>
+          </div>
+          <p className="text-sm font-medium text-[var(--fifa-muted)]">
+            FIFA World Cup 2026 Predictions
+          </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white/10 p-8 shadow-xl backdrop-blur-md"
+          className="rounded-2xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-6"
         >
-          <h2 className="mb-6 text-2xl font-semibold text-white">
-            {isSignUp ? "Create Account" : "Sign In"}
+          <h2 className="mb-5 text-lg font-bold text-white">
+            {isSignUp ? "Create Account" : "Welcome back"}
           </h2>
 
           {isSignUp && (
-            <div className="mb-4">
-              <label className="mb-1 block text-sm font-medium text-green-100">
+            <div className="mb-3">
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
                 Display Name
               </label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-green-200/50 focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+                className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
                 placeholder="Your name"
               />
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-green-100">
+          <div className="mb-3">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
               Email
             </label>
             <input
@@ -86,13 +95,13 @@ export function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-green-200/50 focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+              className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
               placeholder="you@example.com"
             />
           </div>
 
-          <div className="mb-6">
-            <label className="mb-1 block text-sm font-medium text-green-100">
+          <div className="mb-5">
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
               Password
             </label>
             <input
@@ -101,13 +110,13 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-green-200/50 focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+              className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
               placeholder="At least 6 characters"
             />
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-500/20 p-3 text-sm text-red-200">
+            <div className="mb-4 rounded-lg border border-[var(--fifa-red)]/30 bg-[var(--fifa-red)]/10 p-3 text-sm text-[var(--fifa-red)]">
               {error}
             </div>
           )}
@@ -115,7 +124,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-green-500 py-3 font-semibold text-white transition hover:bg-green-400 disabled:opacity-50"
+            className="w-full rounded-lg bg-[var(--fifa-blue)] py-3 text-sm font-bold text-white transition hover:bg-[var(--fifa-blue-light)] disabled:opacity-50"
           >
             {loading
               ? "Loading..."
@@ -124,7 +133,7 @@ export function LoginForm() {
               : "Sign In"}
           </button>
 
-          <p className="mt-4 text-center text-sm text-green-200">
+          <p className="mt-4 text-center text-xs text-[var(--fifa-muted)]">
             {isSignUp
               ? "Already have an account?"
               : "Don't have an account?"}{" "}
@@ -134,12 +143,25 @@ export function LoginForm() {
                 setIsSignUp(!isSignUp);
                 setError(null);
               }}
-              className="font-medium text-white underline hover:no-underline"
+              className="font-semibold text-[var(--fifa-blue-light)] hover:underline"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
           </p>
         </form>
+
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <div className="h-px flex-1 bg-[var(--fifa-border)]" />
+          <div className="flex gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--fifa-red)]" />
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--fifa-blue)]" />
+          </div>
+          <div className="h-px flex-1 bg-[var(--fifa-border)]" />
+        </div>
+        <p className="mt-3 text-center text-[10px] uppercase tracking-widest text-[var(--fifa-muted)]">
+          Canada &middot; Mexico &middot; United States
+        </p>
       </div>
     </div>
   );

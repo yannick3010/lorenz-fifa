@@ -44,27 +44,28 @@ export function LiveMatches({ initialMatches }: { initialMatches: Match[] }) {
 
   return (
     <section>
-      <h2 className="mb-4 text-xl font-semibold text-red-400">Live Now</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--fifa-red)] opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--fifa-red)]" />
+        </span>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--fifa-red)]">
+          Live
+        </h2>
+      </div>
+      <div className="grid gap-3">
         {liveMatches.map((match) => (
           <Link
             key={match.id}
             href={`/matches/${match.id}`}
-            className="block rounded-xl border border-red-500/30 bg-green-900/50 p-4 transition hover:bg-green-900/70"
+            className="block rounded-xl border border-[var(--fifa-red)]/20 bg-[var(--fifa-panel)] p-4 transition active:scale-[0.98]"
           >
-            <div className="mb-2 flex items-center justify-between text-xs text-green-400">
-              <span>
-                {match.round}
-                {match.match_group ? ` - Group ${match.match_group}` : ""}
-              </span>
-              <span className="animate-pulse rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                LIVE
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-lg font-semibold">
+            <div className="flex items-center justify-between">
               <TeamName name={match.home_team} />
-              <span className="font-mono text-xl">
-                {match.home_score ?? 0} - {match.away_score ?? 0}
+              <span className="font-mono text-2xl font-black tabular-nums text-white">
+                {match.home_score ?? 0}
+                <span className="mx-1.5 text-[var(--fifa-muted)]">:</span>
+                {match.away_score ?? 0}
               </span>
               <TeamName name={match.away_team} />
             </div>

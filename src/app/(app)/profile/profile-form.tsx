@@ -49,38 +49,38 @@ export function ProfileForm() {
   }
 
   if (loading) {
-    return <div className="text-green-400">Loading...</div>;
+    return <div className="text-sm text-[var(--fifa-muted)]">Loading...</div>;
   }
 
   return (
     <form
       onSubmit={handleSave}
-      className="max-w-md rounded-xl bg-green-900/50 p-6"
+      className="max-w-sm rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-5"
     >
       <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium text-green-300">
+        <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
           Display Name
         </label>
         <input
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          className="w-full rounded-lg border border-green-700 bg-green-950 px-4 py-3 text-white focus:border-green-400 focus:outline-none focus:ring-1 focus:ring-green-400"
+          className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
         />
       </div>
 
       {saved && (
-        <div className="mb-4 rounded-lg bg-green-500/20 p-3 text-sm text-green-200">
-          Profile updated!
+        <div className="mb-4 rounded-lg border border-[var(--fifa-green)]/30 bg-[var(--fifa-green)]/10 p-3 text-sm text-[var(--fifa-green)]">
+          Saved
         </div>
       )}
 
       <button
         type="submit"
         disabled={saving}
-        className="w-full rounded-lg bg-green-500 py-3 font-semibold text-white transition hover:bg-green-400 disabled:opacity-50"
+        className="w-full rounded-lg bg-[var(--fifa-blue)] py-3 text-sm font-bold text-white transition hover:bg-[var(--fifa-blue-light)] active:scale-[0.98] disabled:opacity-50"
       >
-        {saving ? "Saving..." : "Save Changes"}
+        {saving ? "Saving..." : "Save"}
       </button>
     </form>
   );

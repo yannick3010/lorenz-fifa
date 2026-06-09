@@ -39,60 +39,89 @@ export default async function HomePage() {
     .limit(5);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">World Cup 2026</h1>
-        <p className="mt-1 text-green-300">
-          Predict scores. Earn points. Beat your family.
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-[var(--fifa-muted)]">
+            FIFA World Cup
+          </p>
+          <h1 className="text-2xl font-black tracking-tight text-white md:text-3xl">
+            Predictions
+          </h1>
+        </div>
+        <div className="flex gap-1">
+          <span className="h-2 w-2 rounded-full bg-[var(--fifa-red)]" />
+          <span className="h-2 w-2 rounded-full bg-white" />
+          <span className="h-2 w-2 rounded-full bg-[var(--fifa-blue)]" />
+        </div>
       </div>
 
       <PredictionReminder />
 
       <LiveMatches initialMatches={(liveMatches as Match[]) ?? []} />
 
+      {/* Upcoming */}
+      <section>
+        <SectionHeader title="Upcoming" href="/matches" />
+        {(upcomingMatches?.length ?? 0) > 0 ? (
+          <div className="grid gap-2">
+            {upcomingMatches!.map((match: Match) => (
+              <Link
+                key={match.id}
+                href={`/matches/${match.id}`}
+                className="flex items-center gap-3 rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
+              >
+                <div className="flex flex-1 items-center gap-2 min-w-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <TeamName name={match.home_team} />
+                      <span className="text-xs text-[var(--fifa-muted)]">vs</span>
+                      <TeamName name={match.away_team} />
+                    </div>
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <Countdown kickoff={match.kickoff_time} />
+                  <p className="text-[10px] text-[var(--fifa-muted)]">
+                    {match.match_group ? `Group ${match.match_group}` : match.round}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--fifa-muted)]">No upcoming matches.</p>
+        )}
+      </section>
+
+      {/* Recent Results */}
       {(recentResults?.length ?? 0) > 0 && (
         <section>
-          <h2 className="mb-4 text-xl font-semibold">Recent Results</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <SectionHeader title="Results" href="/matches" />
+          <div className="grid gap-2">
             {recentResults!.map((match: Match) => (
-              <MatchCard key={match.id} match={match} />
+              <Link
+                key={match.id}
+                href={`/matches/${match.id}`}
+                className="flex items-center justify-between rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
+              >
+                <TeamName name={match.home_team} />
+                <span className="font-mono text-lg font-black tabular-nums text-white">
+                  {match.home_score}
+                  <span className="mx-1 text-[var(--fifa-muted)]">:</span>
+                  {match.away_score}
+                </span>
+                <TeamName name={match.away_team} />
+              </Link>
             ))}
           </div>
         </section>
       )}
 
+      {/* Leaderboard */}
       <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Upcoming Matches</h2>
-          <Link
-            href="/matches"
-            className="text-sm text-green-400 hover:underline"
-          >
-            View all
-          </Link>
-        </div>
-        {(upcomingMatches?.length ?? 0) > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {upcomingMatches!.map((match: Match) => (
-              <UpcomingMatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-green-400">No upcoming matches yet.</p>
-        )}
-      </section>
-
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Leaderboard</h2>
-          <Link
-            href="/leaderboard"
-            className="text-sm text-green-400 hover:underline"
-          >
-            Full standings
-          </Link>
-        </div>
+        <SectionHeader title="Standings" href="/leaderboard" />
         <LiveLeaderboard
           initialEntries={(leaderboard as LeaderboardEntry[]) ?? []}
         />
@@ -101,58 +130,18 @@ export default async function HomePage() {
   );
 }
 
-function MatchCard({ match }: { match: Match }) {
-  const isFinished = match.status === "FINISHED";
-
+function SectionHeader({ title, href }: { title: string; href: string }) {
   return (
-    <Link
-      href={`/matches/${match.id}`}
-      className="block rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70"
-    >
-      <div className="mb-2 flex items-center justify-between text-xs text-green-400">
-        <span>
-          {match.round}
-          {match.match_group ? ` - Group ${match.match_group}` : ""}
-        </span>
-        {isFinished && (
-          <span className="rounded-full bg-green-700 px-2 py-0.5 text-xs font-bold text-green-100">
-            FT
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between text-lg font-semibold">
-        <TeamName name={match.home_team} />
-        {match.home_score !== null ? (
-          <span className="font-mono">
-            {match.home_score} - {match.away_score}
-          </span>
-        ) : (
-          <span className="text-green-600">vs</span>
-        )}
-        <TeamName name={match.away_team} />
-      </div>
-    </Link>
-  );
-}
-
-function UpcomingMatchCard({ match }: { match: Match }) {
-  return (
-    <Link
-      href={`/matches/${match.id}`}
-      className="block rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70"
-    >
-      <div className="mb-2 flex items-center justify-between text-xs text-green-400">
-        <span>
-          {match.round}
-          {match.match_group ? ` - Group ${match.match_group}` : ""}
-        </span>
-        <Countdown kickoff={match.kickoff_time} />
-      </div>
-      <div className="flex items-center justify-between text-lg font-semibold">
-        <TeamName name={match.home_team} />
-        <span className="text-green-600">vs</span>
-        <TeamName name={match.away_team} />
-      </div>
-    </Link>
+    <div className="mb-3 flex items-center justify-between">
+      <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+        {title}
+      </h2>
+      <Link
+        href={href}
+        className="text-xs font-semibold text-[var(--fifa-blue-light)] hover:underline"
+      >
+        View all
+      </Link>
+    </div>
   );
 }

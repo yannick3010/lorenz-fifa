@@ -19,25 +19,25 @@ export function calculatePoints(
 export function pointsLabel(points: number): string {
   switch (points) {
     case 3:
-      return "Exact Score";
+      return "Exact";
     case 2:
-      return "Goal Difference";
+      return "Difference";
     case 1:
-      return "Correct Winner";
+      return "Winner";
     default:
-      return "Wrong";
+      return "Miss";
   }
 }
 
 export function pointsBadgeColor(points: number): string {
   switch (points) {
     case 3:
-      return "bg-yellow-500 text-yellow-950";
+      return "bg-[var(--fifa-gold)]/20 text-[var(--fifa-gold)]";
     case 2:
-      return "bg-green-500 text-green-950";
+      return "bg-[var(--fifa-green)]/20 text-[var(--fifa-green)]";
     case 1:
-      return "bg-blue-500 text-blue-950";
+      return "bg-[var(--fifa-blue-light)]/20 text-[var(--fifa-blue-light)]";
     default:
-      return "bg-gray-500 text-gray-100";
+      return "bg-white/5 text-[var(--fifa-muted)]";
   }
 }

@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import type { PredictionWithUser } from "@/lib/supabase/types";
 import { pointsBadgeColor, pointsLabel } from "@/lib/scoring";
 import { PredictionForm } from "./prediction-form";
-import { TeamName, getFlagUrl } from "@/components/team-name";
+import { getFlagUrl } from "@/components/team-name";
 import { Countdown } from "@/components/countdown";
 
 export default async function MatchDetailPage({
@@ -54,146 +54,144 @@ export default async function MatchDetailPage({
   const awayFlag = getFlagUrl(match.away_team);
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-2xl bg-green-900/50 p-6">
-        <div className="mb-2 flex items-center justify-between text-sm text-green-400">
-          <span>
+    <div className="space-y-6">
+      {/* Match header */}
+      <div className="rounded-2xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-5">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
             {match.round}
             {match.match_group ? ` — Group ${match.match_group}` : ""}
           </span>
-          <div className="flex items-center gap-2">
-            {isLive && (
-              <span className="animate-pulse rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                LIVE
+          {isLive && (
+            <span className="flex items-center gap-1.5">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--fifa-red)] opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--fifa-red)]" />
               </span>
-            )}
-            {isFinished && (
-              <span className="rounded-full bg-green-600 px-2 py-0.5 text-xs font-bold text-white">
-                FINAL
-              </span>
-            )}
-            {!isPast && <Countdown kickoff={match.kickoff_time} />}
-          </div>
+              <span className="text-[10px] font-bold uppercase text-[var(--fifa-red)]">Live</span>
+            </span>
+          )}
+          {isFinished && (
+            <span className="text-[10px] font-bold uppercase text-[var(--fifa-muted)]">Final</span>
+          )}
+          {!isPast && <Countdown kickoff={match.kickoff_time} />}
         </div>
 
-        <div className="flex items-center justify-center gap-6 py-4 sm:gap-10">
-          <div className="text-center">
+        <div className="flex items-center justify-between py-5">
+          <div className="flex-1 text-center">
             {homeFlag && (
               <img
                 src={homeFlag.replace("w40", "w80")}
-                alt={`${match.home_team} flag`}
-                className="mx-auto mb-2 h-10 w-16 rounded object-cover shadow"
+                alt=""
+                className="mx-auto mb-2 h-10 w-16 rounded object-cover"
               />
             )}
-            <div className="text-xl font-bold sm:text-2xl">{match.home_team}</div>
+            <p className="text-sm font-bold text-white">{match.home_team}</p>
           </div>
-          <div className="text-center">
+
+          <div className="px-4 text-center">
             {match.home_score !== null ? (
-              <div className="text-4xl font-bold font-mono sm:text-5xl">
-                {match.home_score} - {match.away_score}
-              </div>
+              <p className="font-mono text-4xl font-black tabular-nums text-white">
+                {match.home_score}
+                <span className="mx-2 text-[var(--fifa-muted)]">:</span>
+                {match.away_score}
+              </p>
             ) : (
-              <div className="text-2xl text-green-600">vs</div>
+              <p className="text-xl font-bold text-[var(--fifa-muted)]">vs</p>
             )}
           </div>
-          <div className="text-center">
+
+          <div className="flex-1 text-center">
             {awayFlag && (
               <img
                 src={awayFlag.replace("w40", "w80")}
-                alt={`${match.away_team} flag`}
-                className="mx-auto mb-2 h-10 w-16 rounded object-cover shadow"
+                alt=""
+                className="mx-auto mb-2 h-10 w-16 rounded object-cover"
               />
             )}
-            <div className="text-xl font-bold sm:text-2xl">{match.away_team}</div>
+            <p className="text-sm font-bold text-white">{match.away_team}</p>
           </div>
         </div>
       </div>
 
+      {/* Prediction form */}
       {!isPast && (
-        <section>
-          <h2 className="mb-4 text-xl font-semibold">Your Prediction</h2>
-          <PredictionForm
-            matchId={match.id}
-            existingPrediction={
-              myPrediction
-                ? {
-                    home_score: myPrediction.home_score,
-                    away_score: myPrediction.away_score,
-                  }
-                : null
-            }
-          />
-        </section>
+        <PredictionForm
+          matchId={match.id}
+          existingPrediction={
+            myPrediction
+              ? {
+                  home_score: myPrediction.home_score,
+                  away_score: myPrediction.away_score,
+                }
+              : null
+          }
+        />
       )}
 
+      {/* Your prediction result */}
       {isPast && myPrediction && (
-        <section>
-          <h2 className="mb-4 text-xl font-semibold">Your Prediction</h2>
-          <div className="rounded-xl bg-green-900/50 p-4">
-            <span className="text-lg font-mono font-semibold">
-              {myPrediction.home_score} - {myPrediction.away_score}
+        <div className="rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-4">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+            Your prediction
+          </p>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xl font-bold tabular-nums text-white">
+              {myPrediction.home_score} : {myPrediction.away_score}
             </span>
             {myPrediction.points_earned !== null && (
               <span
-                className={`ml-3 inline-block rounded-full px-3 py-1 text-sm font-bold ${pointsBadgeColor(
+                className={`rounded-md px-2.5 py-1 text-xs font-bold ${pointsBadgeColor(
                   myPrediction.points_earned
                 )}`}
               >
-                {myPrediction.points_earned}pts — {pointsLabel(myPrediction.points_earned)}
+                +{myPrediction.points_earned} {pointsLabel(myPrediction.points_earned)}
               </span>
             )}
           </div>
-        </section>
+        </div>
       )}
 
+      {/* All predictions */}
       {isPast && allPredictions.length > 0 && (
         <section>
-          <h2 className="mb-4 text-xl font-semibold">All Predictions</h2>
-          <div className="rounded-xl bg-green-900/50 overflow-hidden">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-green-800 text-sm text-green-300">
-                  <th className="px-4 py-3">Player</th>
-                  <th className="px-4 py-3 text-center">Prediction</th>
-                  <th className="px-4 py-3 text-right">Points</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allPredictions.map((pred) => (
-                  <tr
-                    key={pred.id}
-                    className="border-b border-green-800/50 last:border-0"
-                  >
-                    <td className="px-4 py-3 font-medium">
-                      {pred.profiles.display_name}
-                    </td>
-                    <td className="px-4 py-3 text-center font-mono">
-                      {pred.home_score} - {pred.away_score}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {pred.points_earned !== null ? (
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${pointsBadgeColor(
-                            pred.points_earned
-                          )}`}
-                        >
-                          {pred.points_earned}pts
-                        </span>
-                      ) : (
-                        <span className="text-green-600">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+            All Predictions
+          </h2>
+          <div className="divide-y divide-[var(--fifa-border)] rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] overflow-hidden">
+            {allPredictions.map((pred) => (
+              <div
+                key={pred.id}
+                className="flex items-center justify-between px-4 py-3"
+              >
+                <span className="text-sm font-semibold text-white">
+                  {pred.profiles.display_name}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-bold tabular-nums text-white">
+                    {pred.home_score} : {pred.away_score}
+                  </span>
+                  {pred.points_earned !== null ? (
+                    <span
+                      className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${pointsBadgeColor(
+                        pred.points_earned
+                      )}`}
+                    >
+                      +{pred.points_earned}
+                    </span>
+                  ) : (
+                    <span className="w-8" />
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}
 
       {isPast && !myPrediction && (
-        <p className="text-green-500">
-          You didn&apos;t make a prediction for this match.
+        <p className="text-sm text-[var(--fifa-muted)]">
+          No prediction made for this match.
         </p>
       )}
     </div>
