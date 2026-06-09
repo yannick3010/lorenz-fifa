@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import type { Match } from "@/lib/supabase/types";
+import { TeamName } from "@/components/team-name";
 
 export function LiveMatches({ initialMatches }: { initialMatches: Match[] }) {
   const [matches, setMatches] = useState(initialMatches);
@@ -61,11 +62,11 @@ export function LiveMatches({ initialMatches }: { initialMatches: Match[] }) {
               </span>
             </div>
             <div className="flex items-center justify-between text-lg font-semibold">
-              <span>{match.home_team}</span>
+              <TeamName name={match.home_team} />
               <span className="font-mono text-xl">
                 {match.home_score ?? 0} - {match.away_score ?? 0}
               </span>
-              <span>{match.away_team}</span>
+              <TeamName name={match.away_team} />
             </div>
           </Link>
         ))}

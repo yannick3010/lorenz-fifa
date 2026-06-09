@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import type { PredictionWithUser } from "@/lib/supabase/types";
 import { pointsBadgeColor, pointsLabel } from "@/lib/scoring";
 import { PredictionForm } from "./prediction-form";
+import { TeamName, getFlagUrl } from "@/components/team-name";
+import { Countdown } from "@/components/countdown";
 
 export default async function MatchDetailPage({
   params,
@@ -45,57 +47,64 @@ export default async function MatchDetailPage({
     allPredictions = (data as PredictionWithUser[]) ?? [];
   }
 
-  const kickoff = new Date(match.kickoff_time);
   const isLive = ["IN_PLAY", "PAUSED", "HALFTIME"].includes(match.status);
   const isFinished = match.status === "FINISHED";
+
+  const homeFlag = getFlagUrl(match.home_team);
+  const awayFlag = getFlagUrl(match.away_team);
 
   return (
     <div className="space-y-8">
       <div className="rounded-2xl bg-green-900/50 p-6">
-        <div className="mb-2 flex items-center gap-2 text-sm text-green-400">
+        <div className="mb-2 flex items-center justify-between text-sm text-green-400">
           <span>
             {match.round}
             {match.match_group ? ` — Group ${match.match_group}` : ""}
           </span>
-          {isLive && (
-            <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-              LIVE
-            </span>
-          )}
-          {isFinished && (
-            <span className="rounded-full bg-green-600 px-2 py-0.5 text-xs font-bold text-white">
-              FINAL
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="animate-pulse rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                LIVE
+              </span>
+            )}
+            {isFinished && (
+              <span className="rounded-full bg-green-600 px-2 py-0.5 text-xs font-bold text-white">
+                FINAL
+              </span>
+            )}
+            {!isPast && <Countdown kickoff={match.kickoff_time} />}
+          </div>
         </div>
 
-        <div className="flex items-center justify-center gap-6 py-4">
+        <div className="flex items-center justify-center gap-6 py-4 sm:gap-10">
           <div className="text-center">
-            <div className="text-2xl font-bold">{match.home_team}</div>
+            {homeFlag && (
+              <img
+                src={homeFlag.replace("w40", "w80")}
+                alt={`${match.home_team} flag`}
+                className="mx-auto mb-2 h-10 w-16 rounded object-cover shadow"
+              />
+            )}
+            <div className="text-xl font-bold sm:text-2xl">{match.home_team}</div>
           </div>
           <div className="text-center">
             {match.home_score !== null ? (
-              <div className="text-4xl font-bold font-mono">
+              <div className="text-4xl font-bold font-mono sm:text-5xl">
                 {match.home_score} - {match.away_score}
               </div>
             ) : (
               <div className="text-2xl text-green-600">vs</div>
             )}
-            <div className="mt-1 text-xs text-green-400">
-              {kickoff.toLocaleDateString(undefined, {
-                weekday: "short",
-                month: "short",
-                day: "numeric",
-              })}{" "}
-              at{" "}
-              {kickoff.toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold">{match.away_team}</div>
+            {awayFlag && (
+              <img
+                src={awayFlag.replace("w40", "w80")}
+                alt={`${match.away_team} flag`}
+                className="mx-auto mb-2 h-10 w-16 rounded object-cover shadow"
+              />
+            )}
+            <div className="text-xl font-bold sm:text-2xl">{match.away_team}</div>
           </div>
         </div>
       </div>

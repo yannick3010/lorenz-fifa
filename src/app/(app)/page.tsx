@@ -5,6 +5,9 @@ import Link from "next/link";
 import type { Match, LeaderboardEntry } from "@/lib/supabase/types";
 import { LiveMatches } from "@/components/live-matches";
 import { LiveLeaderboard } from "@/components/live-leaderboard";
+import { PredictionReminder } from "@/components/prediction-reminder";
+import { TeamName } from "@/components/team-name";
+import { Countdown } from "@/components/countdown";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -44,6 +47,8 @@ export default async function HomePage() {
         </p>
       </div>
 
+      <PredictionReminder />
+
       <LiveMatches initialMatches={(liveMatches as Match[]) ?? []} />
 
       {(recentResults?.length ?? 0) > 0 && (
@@ -70,7 +75,7 @@ export default async function HomePage() {
         {(upcomingMatches?.length ?? 0) > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             {upcomingMatches!.map((match: Match) => (
-              <MatchCard key={match.id} match={match} />
+              <UpcomingMatchCard key={match.id} match={match} />
             ))}
           </div>
         ) : (
@@ -98,7 +103,6 @@ export default async function HomePage() {
 
 function MatchCard({ match }: { match: Match }) {
   const isFinished = match.status === "FINISHED";
-  const kickoff = new Date(match.kickoff_time);
 
   return (
     <Link
@@ -110,25 +114,14 @@ function MatchCard({ match }: { match: Match }) {
           {match.round}
           {match.match_group ? ` - Group ${match.match_group}` : ""}
         </span>
-        {isFinished ? (
+        {isFinished && (
           <span className="rounded-full bg-green-700 px-2 py-0.5 text-xs font-bold text-green-100">
             FT
-          </span>
-        ) : (
-          <span>
-            {kickoff.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}{" "}
-            {kickoff.toLocaleTimeString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
           </span>
         )}
       </div>
       <div className="flex items-center justify-between text-lg font-semibold">
-        <span>{match.home_team}</span>
+        <TeamName name={match.home_team} />
         {match.home_score !== null ? (
           <span className="font-mono">
             {match.home_score} - {match.away_score}
@@ -136,7 +129,29 @@ function MatchCard({ match }: { match: Match }) {
         ) : (
           <span className="text-green-600">vs</span>
         )}
-        <span>{match.away_team}</span>
+        <TeamName name={match.away_team} />
+      </div>
+    </Link>
+  );
+}
+
+function UpcomingMatchCard({ match }: { match: Match }) {
+  return (
+    <Link
+      href={`/matches/${match.id}`}
+      className="block rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70"
+    >
+      <div className="mb-2 flex items-center justify-between text-xs text-green-400">
+        <span>
+          {match.round}
+          {match.match_group ? ` - Group ${match.match_group}` : ""}
+        </span>
+        <Countdown kickoff={match.kickoff_time} />
+      </div>
+      <div className="flex items-center justify-between text-lg font-semibold">
+        <TeamName name={match.home_team} />
+        <span className="text-green-600">vs</span>
+        <TeamName name={match.away_team} />
       </div>
     </Link>
   );

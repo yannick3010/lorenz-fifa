@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { Match, Prediction } from "@/lib/supabase/types";
 import { pointsBadgeColor, pointsLabel } from "@/lib/scoring";
+import { TeamName } from "@/components/team-name";
+import { Countdown } from "@/components/countdown";
 
 export default async function MatchesPage() {
   const supabase = await createClient();
@@ -44,37 +46,32 @@ export default async function MatchesPage() {
               );
               const isFinished = match.status === "FINISHED";
               const isPast = new Date(match.kickoff_time) <= new Date();
-              const kickoff = new Date(match.kickoff_time);
 
               return (
                 <Link
                   key={match.id}
                   href={`/matches/${match.id}`}
-                  className="flex items-center justify-between rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70"
+                  className="flex flex-col gap-2 rounded-xl bg-green-900/50 p-4 transition hover:bg-green-900/70 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2 text-xs text-green-400">
                       {match.match_group && (
                         <span>Group {match.match_group}</span>
                       )}
-                      <span>
-                        {kickoff.toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
-                        {kickoff.toLocaleTimeString(undefined, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {isLive && (
-                        <span className="rounded-full bg-red-500 px-2 py-0.5 font-bold text-white">
+                      {isLive ? (
+                        <span className="animate-pulse rounded-full bg-red-500 px-2 py-0.5 font-bold text-white">
                           LIVE
                         </span>
+                      ) : isFinished ? (
+                        <span className="rounded-full bg-green-700 px-2 py-0.5 font-bold text-green-100">
+                          FT
+                        </span>
+                      ) : (
+                        <Countdown kickoff={match.kickoff_time} />
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-base font-semibold">
-                      <span>{match.home_team}</span>
+                      <TeamName name={match.home_team} />
                       {match.home_score !== null ? (
                         <span className="font-mono text-lg">
                           {match.home_score} - {match.away_score}
@@ -82,11 +79,11 @@ export default async function MatchesPage() {
                       ) : (
                         <span className="text-green-600">vs</span>
                       )}
-                      <span>{match.away_team}</span>
+                      <TeamName name={match.away_team} />
                     </div>
                   </div>
 
-                  <div className="ml-4 text-right text-sm">
+                  <div className="text-right text-sm sm:ml-4">
                     {pred ? (
                       <div>
                         <div className="text-green-300">
