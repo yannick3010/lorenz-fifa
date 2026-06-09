@@ -12,6 +12,10 @@ import { Countdown } from "@/components/countdown";
 export default async function HomePage() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data: upcomingMatches } = await supabase
     .from("matches")
     .select("*")
@@ -31,6 +35,14 @@ export default async function HomePage() {
     .eq("status", "FINISHED")
     .order("kickoff_time", { ascending: false })
     .limit(4);
+
+  const { data: predictions } = await supabase
+    .from("predictions")
+    .select("*")
+    .eq("user_id", user!.id);
+
+  const predictionMap = new Map<number, boolean>();
+  predictions?.forEach((p: { match_id: number }) => predictionMap.set(p.match_id, true));
 
   const { data: leaderboard } = await supabase
     .from("leaderboard")
@@ -66,29 +78,46 @@ export default async function HomePage() {
         <SectionHeader title="Upcoming" href="/matches" />
         {(upcomingMatches?.length ?? 0) > 0 ? (
           <div className="grid gap-2">
-            {upcomingMatches!.map((match: Match) => (
-              <Link
-                key={match.id}
-                href={`/matches/${match.id}`}
-                className="flex items-center gap-3 rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
-              >
-                <div className="flex flex-1 items-center gap-2 min-w-0">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <TeamName name={match.home_team} />
-                      <span className="text-xs text-[var(--fifa-muted)]">vs</span>
-                      <TeamName name={match.away_team} />
+            {upcomingMatches!.map((match: Match) => {
+              const hasPrediction = predictionMap.has(match.id);
+              const hoursUntil = (new Date(match.kickoff_time).getTime() - Date.now()) / 3_600_000;
+              const isUrgent = !hasPrediction && hoursUntil < 24 && hoursUntil > 0;
+
+              return (
+                <Link
+                  key={match.id}
+                  href={`/matches/${match.id}`}
+                  className={`flex items-center gap-3 rounded-xl border p-3.5 transition active:scale-[0.98] ${
+                    isUrgent
+                      ? "border-amber-500/60 bg-amber-500/5"
+                      : hasPrediction
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : "border-[var(--fifa-border)] bg-[var(--fifa-panel)]"
+                  }`}
+                >
+                  <div className="flex flex-1 items-center gap-2 min-w-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                        <span className="flex justify-end"><TeamName name={match.home_team} /></span>
+                        <span className="text-xs text-[var(--fifa-muted)]">vs</span>
+                        <span className="flex justify-start"><TeamName name={match.away_team} /></span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <Countdown kickoff={match.kickoff_time} />
-                  <p className="text-[10px] text-[var(--fifa-muted)]">
-                    {match.match_group ? `Group ${match.match_group}` : match.round}
-                  </p>
-                </div>
-              </Link>
-            ))}
+                  <div className="shrink-0 text-right">
+                    <Countdown kickoff={match.kickoff_time} />
+                    <p className="text-[10px] text-[var(--fifa-muted)]">
+                      {match.match_group ? `Group ${match.match_group}` : match.round}
+                    </p>
+                    {isUrgent ? (
+                      <p className="text-[10px] font-bold text-amber-400">Not picked!</p>
+                    ) : hasPrediction ? (
+                      <p className="text-[10px] font-semibold text-emerald-400">Picked</p>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-[var(--fifa-muted)]">No upcoming matches.</p>
@@ -104,15 +133,15 @@ export default async function HomePage() {
               <Link
                 key={match.id}
                 href={`/matches/${match.id}`}
-                className="flex items-center justify-between rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
+                className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
               >
-                <TeamName name={match.home_team} />
+                <span className="flex justify-end"><TeamName name={match.home_team} /></span>
                 <span className="font-mono text-lg font-black tabular-nums text-white">
                   {match.home_score}
                   <span className="mx-1 text-[var(--fifa-muted)]">:</span>
                   {match.away_score}
                 </span>
-                <TeamName name={match.away_team} />
+                <span className="flex justify-start"><TeamName name={match.away_team} /></span>
               </Link>
             ))}
           </div>

@@ -52,11 +52,20 @@ export default async function MatchesPage() {
               const isFinished = match.status === "FINISHED";
               const isPast = new Date(match.kickoff_time) <= new Date();
 
+              const hoursUntil = (new Date(match.kickoff_time).getTime() - Date.now()) / 3_600_000;
+              const isUrgent = !pred && !isPast && !isFinished && hoursUntil < 24 && hoursUntil > 0;
+
               return (
                 <Link
                   key={match.id}
                   href={`/matches/${match.id}`}
-                  className="block rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
+                  className={`block rounded-xl border p-3.5 transition active:scale-[0.98] ${
+                    isUrgent
+                      ? "border-amber-500/60 bg-amber-500/5"
+                      : pred && !isFinished
+                        ? "border-emerald-500/30 bg-emerald-500/5"
+                        : "border-[var(--fifa-border)] bg-[var(--fifa-panel)]"
+                  }`}
                 >
                   <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -86,10 +95,14 @@ export default async function MatchesPage() {
                           +{pred.points_earned} {pointsLabel(pred.points_earned)}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-semibold text-[var(--fifa-muted)]">
+                        <span className="text-[10px] font-semibold text-emerald-400">
                           {pred.home_score}:{pred.away_score} picked
                         </span>
                       )
+                    ) : isUrgent ? (
+                      <span className="text-[10px] font-bold text-amber-400">
+                        Not picked!
+                      </span>
                     ) : !isPast && !isFinished ? (
                       <span className="text-[10px] font-semibold text-[var(--fifa-blue-light)]">
                         Predict
@@ -97,8 +110,8 @@ export default async function MatchesPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <TeamName name={match.home_team} />
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <span className="flex justify-end"><TeamName name={match.home_team} /></span>
                     {match.home_score !== null ? (
                       <span className="font-mono text-lg font-black tabular-nums text-white">
                         {match.home_score}
@@ -108,7 +121,7 @@ export default async function MatchesPage() {
                     ) : (
                       <span className="text-xs font-semibold text-[var(--fifa-muted)]">vs</span>
                     )}
-                    <TeamName name={match.away_team} />
+                    <span className="flex justify-start"><TeamName name={match.away_team} /></span>
                   </div>
                 </Link>
               );
