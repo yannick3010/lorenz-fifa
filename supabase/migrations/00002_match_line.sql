@@ -5,9 +5,9 @@
 -- DEFINER function bypasses RLS to read all picks for a match but returns
 -- ONLY summary numbers -- never individual rows, scores, or user ids.
 --
--- A minimum-sample threshold protects against tiny samples where the
--- aggregate would effectively reveal a single person's pick: below the
+-- A minimum-sample threshold protects against tiny samples: below the
 -- threshold only total_picks is returned and every other column is null.
+-- Set to 2 -- the line is revealed once at least two players have picked.
 create or replace function public.get_match_line(p_match_id bigint)
 returns table (
   total_picks integer,
@@ -24,7 +24,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  v_min_picks constant integer := 3;
+  v_min_picks constant integer := 2;
   v_total integer;
 begin
   select count(*) into v_total
