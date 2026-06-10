@@ -12,10 +12,10 @@ export function PredictionForm({
   existingPrediction: { home_score: number; away_score: number } | null;
 }) {
   const [homeScore, setHomeScore] = useState(
-    existingPrediction?.home_score ?? 0
+    existingPrediction ? String(existingPrediction.home_score) : ""
   );
   const [awayScore, setAwayScore] = useState(
-    existingPrediction?.away_score ?? 0
+    existingPrediction ? String(existingPrediction.away_score) : ""
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +23,31 @@ export function PredictionForm({
   const router = useRouter();
   const supabase = createClient();
 
+  function handleScoreChange(
+    value: string,
+    setter: (next: string) => void
+  ) {
+    // Strip anything that isn't a digit so the field stays numeric.
+    const digits = value.replace(/\D/g, "");
+    if (digits === "") {
+      setter("");
+      return;
+    }
+    const clamped = Math.min(parseInt(digits, 10), 20);
+    setter(String(clamped));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
     setSaved(false);
+
+    if (homeScore === "" || awayScore === "") {
+      setError("Enter a score for both teams.");
+      return;
+    }
+
+    setSaving(true);
 
     const {
       data: { user },
@@ -43,8 +63,8 @@ export function PredictionForm({
       {
         user_id: user.id,
         match_id: matchId,
-        home_score: homeScore,
-        away_score: awayScore,
+        home_score: parseInt(homeScore, 10),
+        away_score: parseInt(awayScore, 10),
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,match_id" }
@@ -79,12 +99,15 @@ export function PredictionForm({
             Home
           </label>
           <input
-            type="number"
-            min={0}
-            max={20}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            placeholder="0"
             value={homeScore}
-            onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
-            className="w-20 rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-3 py-3 text-center font-mono text-2xl font-bold text-white focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => handleScoreChange(e.target.value, setHomeScore)}
+            className="w-20 rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-3 py-3 text-center font-mono text-2xl font-bold text-white placeholder:text-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
           />
         </div>
         <span className="mt-6 font-mono text-xl text-[var(--fifa-muted)]">:</span>
@@ -93,12 +116,15 @@ export function PredictionForm({
             Away
           </label>
           <input
-            type="number"
-            min={0}
-            max={20}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            maxLength={2}
+            placeholder="0"
             value={awayScore}
-            onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
-            className="w-20 rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-3 py-3 text-center font-mono text-2xl font-bold text-white focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => handleScoreChange(e.target.value, setAwayScore)}
+            className="w-20 rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-3 py-3 text-center font-mono text-2xl font-bold text-white placeholder:text-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
           />
         </div>
       </div>
