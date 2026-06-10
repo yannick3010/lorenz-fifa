@@ -43,6 +43,18 @@ export type LeaderboardEntry = {
   total_predictions: number;
 };
 
+// Aggregate row returned by the get_match_line() RPC. Below the minimum-sample
+// threshold every field except total_picks is null (line not yet revealed).
+export type MatchLine = {
+  total_picks: number;
+  home_win_count: number | null;
+  draw_count: number | null;
+  away_win_count: number | null;
+  modal_home: number | null;
+  modal_away: number | null;
+  modal_count: number | null;
+};
+
 export type PredictionWithMatch = Prediction & {
   matches: Match;
 };
