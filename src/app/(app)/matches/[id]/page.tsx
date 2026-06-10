@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import type { PredictionWithUser } from "@/lib/supabase/types";
+import type { MatchLine, PredictionWithUser } from "@/lib/supabase/types";
 import { pointsBadgeColor, pointsLabel } from "@/lib/scoring";
 import { PredictionForm } from "./prediction-form";
+import { MatchLineCard } from "@/components/match-line";
 import { getFlagUrl } from "@/components/team-name";
 import { Countdown } from "@/components/countdown";
 
@@ -36,6 +37,15 @@ export default async function MatchDetailPage({
     .single();
 
   const isPast = new Date(match.kickoff_time) <= new Date();
+
+  // Estimated line from the crowd's picks (aggregate only -- see get_match_line).
+  let line: MatchLine | null = null;
+  if (!isPast) {
+    const { data } = await supabase.rpc("get_match_line", {
+      p_match_id: match.id,
+    });
+    line = (data as MatchLine[] | null)?.[0] ?? null;
+  }
 
   let allPredictions: PredictionWithUser[] = [];
   if (isPast) {
@@ -126,6 +136,15 @@ export default async function MatchDetailPage({
                 }
               : null
           }
+        />
+      )}
+
+      {/* Live line (consensus from submitted picks) */}
+      {!isPast && (
+        <MatchLineCard
+          line={line}
+          homeTeam={match.home_team}
+          awayTeam={match.away_team}
         />
       )}
 
