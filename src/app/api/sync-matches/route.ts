@@ -76,17 +76,24 @@ async function handleSync(request: Request) {
   let scored = 0;
 
   for (const m of matches) {
-    const matchData = {
+    const ft = m.score?.fullTime;
+    const apiHomeScore = ft?.home ?? ft?.homeTeam ?? null;
+    const apiAwayScore = ft?.away ?? ft?.awayTeam ?? null;
+
+    const matchData: Record<string, unknown> = {
       external_id: m.id,
       round: m.stage?.replace(/_/g, " ") ?? m.matchday?.toString() ?? "Unknown",
       match_group: m.group?.replace("GROUP_", "") ?? null,
       home_team: m.homeTeam?.name ?? "TBD",
       away_team: m.awayTeam?.name ?? "TBD",
-      home_score: m.score?.fullTime?.home ?? null,
-      away_score: m.score?.fullTime?.away ?? null,
       kickoff_time: m.utcDate,
       status: m.status,
     };
+
+    if (apiHomeScore !== null && apiAwayScore !== null) {
+      matchData.home_score = apiHomeScore;
+      matchData.away_score = apiAwayScore;
+    }
 
     const { error } = await supabase.from("matches").upsert(matchData, {
       onConflict: "external_id",
