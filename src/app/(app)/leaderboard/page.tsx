@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
 import type { LeaderboardEntry } from "@/lib/supabase/types";
+import Link from "next/link";
 
 const RANK_COLORS = [
   "text-[var(--fifa-gold)]",
@@ -62,14 +63,17 @@ export default async function LeaderboardPage() {
                 <span className={`w-8 text-center font-mono text-sm font-bold ${RANK_COLORS[i] ?? "text-[var(--fifa-muted)]"}`}>
                   {i + 1}
                 </span>
-                <span className="flex-1 min-w-0 truncate text-sm text-white">
+                <Link
+                  href={`/players/${entry.user_id}`}
+                  className="flex-1 min-w-0 truncate text-sm text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+                >
                   <span className="font-semibold">{entry.display_name}</span>
                   {entry.full_name && (
                     <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
                       ({entry.full_name})
                     </span>
                   )}
-                </span>
+                </Link>
 
                 {/* Desktop stat columns */}
                 <span className="hidden w-12 text-center md:block">
@@ -135,9 +139,12 @@ function PodiumCard({
       <span className={`font-mono text-xs font-bold ${RANK_COLORS[rank - 1]}`}>
         {rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd"}
       </span>
-      <span className="mt-1 w-full truncate text-center text-xs font-bold text-white">
+      <Link
+        href={`/players/${entry.user_id}`}
+        className="mt-1 w-full truncate text-center text-xs font-bold text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+      >
         {entry.display_name}
-      </span>
+      </Link>
       {entry.full_name && (
         <span className="w-full truncate text-center text-[9px] text-[var(--fifa-muted)]">
           {entry.full_name}
