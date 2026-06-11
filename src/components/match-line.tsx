@@ -68,19 +68,12 @@ export function MatchLineCard({
         </span>
       </div>
 
-      {line.modal_home !== null && line.modal_away !== null && (
+      {line.avg_margin !== null && (
         <div className="mt-4 flex items-center justify-between border-t border-[var(--fifa-border)] pt-4">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
-            Most-picked score
+            Consensus spread
           </span>
-          <span className="font-mono text-sm font-bold tabular-nums text-white">
-            {line.modal_home} : {line.modal_away}
-            {line.modal_count !== null && (
-              <span className="ml-2 text-[var(--fifa-muted)]">
-                &times;{line.modal_count}
-              </span>
-            )}
-          </span>
+          <Spread margin={line.avg_margin} homeTeam={homeTeam} awayTeam={awayTeam} />
         </div>
       )}
 
@@ -95,4 +88,37 @@ export function MatchLineCard({
 function Segment({ pct, className }: { pct: number; className: string }) {
   if (pct <= 0) return null;
   return <div className={className} style={{ width: `${pct}%` }} />;
+}
+
+// Vegas-style spread from the average pick margin. By convention the favourite
+// lays the points (negative number); a margin of zero is a pick'em.
+function Spread({
+  margin,
+  homeTeam,
+  awayTeam,
+}: {
+  margin: number;
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  // numeric can arrive as a string from PostgREST -- normalise before comparing.
+  const m = Number(margin);
+
+  if (!m) {
+    return (
+      <span className="font-mono text-sm font-bold tabular-nums text-white">
+        Pick&rsquo;em
+      </span>
+    );
+  }
+
+  const favourite = m > 0 ? homeTeam : awayTeam;
+  const spread = `-${Math.abs(m).toFixed(1)}`;
+
+  return (
+    <span className="font-mono text-sm font-bold tabular-nums">
+      <span className="text-white">{favourite} </span>
+      <span className="text-[var(--fifa-green)]">{spread}</span>
+    </span>
+  );
 }

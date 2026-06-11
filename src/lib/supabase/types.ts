@@ -52,9 +52,9 @@ export type MatchLine = {
   home_win_count: number | null;
   draw_count: number | null;
   away_win_count: number | null;
-  modal_home: number | null;
-  modal_away: number | null;
-  modal_count: number | null;
+  // Consensus spread: average of (home_score - away_score) across all picks.
+  // Positive favours the home team, negative favours the away team.
+  avg_margin: number | null;
 };
 
 export type PredictionWithMatch = Prediction & {
