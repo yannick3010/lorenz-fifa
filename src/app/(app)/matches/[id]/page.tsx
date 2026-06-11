@@ -151,22 +151,40 @@ export default async function MatchDetailPage({
 
       {/* Your prediction result */}
       {isPast && myPrediction && (
-        <div className="rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-4">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
-            Your prediction
+        <div className={`rounded-xl border p-4 ${
+          myPrediction.points_earned === 3
+            ? "border-[var(--fifa-gold)]/40 bg-[var(--fifa-gold)]/5"
+            : myPrediction.points_earned === 2
+              ? "border-[var(--fifa-green)]/40 bg-[var(--fifa-green)]/5"
+              : myPrediction.points_earned === 1
+                ? "border-[var(--fifa-blue-light)]/40 bg-[var(--fifa-blue-light)]/5"
+                : "border-[var(--fifa-border)] bg-[var(--fifa-panel)]"
+        }`}>
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+            Your Prediction
           </p>
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xl font-bold tabular-nums text-white">
-              {myPrediction.home_score} : {myPrediction.away_score}
-            </span>
-            {myPrediction.points_earned !== null && (
-              <span
-                className={`rounded-md px-2.5 py-1 text-xs font-bold ${pointsBadgeColor(
-                  myPrediction.points_earned
-                )}`}
-              >
-                +{myPrediction.points_earned} {pointsLabel(myPrediction.points_earned)}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-2xl font-black tabular-nums text-white">
+                {myPrediction.home_score} : {myPrediction.away_score}
               </span>
+              {myPrediction.points_earned !== null && (
+                <span
+                  className={`rounded-md px-2.5 py-1 text-xs font-bold ${pointsBadgeColor(
+                    myPrediction.points_earned
+                  )}`}
+                >
+                  +{myPrediction.points_earned} {pointsLabel(myPrediction.points_earned)}
+                </span>
+              )}
+            </div>
+            {isFinished && match.home_score !== null && (
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">Final</p>
+                <p className="font-mono text-lg font-bold tabular-nums text-[var(--fifa-muted)]">
+                  {match.home_score} : {match.away_score}
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -179,40 +197,50 @@ export default async function MatchDetailPage({
             All Predictions
           </h2>
           <div className="divide-y divide-[var(--fifa-border)] rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] overflow-hidden">
-            {allPredictions.map((pred) => (
-              <div
-                key={pred.id}
-                className="flex items-center justify-between px-4 py-3"
-              >
-                <Link
-                  href={`/players/${pred.user_id}`}
-                  className="text-sm text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+            {allPredictions.map((pred) => {
+              const rowBorder =
+                pred.points_earned === 3
+                  ? "border-l-2 border-l-[var(--fifa-gold)]"
+                  : pred.points_earned === 2
+                    ? "border-l-2 border-l-[var(--fifa-green)]"
+                    : pred.points_earned === 1
+                      ? "border-l-2 border-l-[var(--fifa-blue-light)]"
+                      : "";
+              return (
+                <div
+                  key={pred.id}
+                  className={`flex items-center justify-between px-4 py-3 ${rowBorder}`}
                 >
-                  <span className="font-semibold">{pred.profiles.display_name}</span>
-                  {pred.profiles.full_name && (
-                    <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
-                      ({pred.profiles.full_name})
+                  <Link
+                    href={`/players/${pred.user_id}`}
+                    className="text-sm text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+                  >
+                    <span className="font-semibold">{pred.profiles.display_name}</span>
+                    {pred.profiles.full_name && (
+                      <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
+                        ({pred.profiles.full_name})
+                      </span>
+                    )}
+                  </Link>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-sm font-bold tabular-nums text-white">
+                      {pred.home_score} : {pred.away_score}
                     </span>
-                  )}
-                </Link>
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-sm font-bold tabular-nums text-white">
-                    {pred.home_score} : {pred.away_score}
-                  </span>
-                  {pred.points_earned !== null ? (
-                    <span
-                      className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${pointsBadgeColor(
-                        pred.points_earned
-                      )}`}
-                    >
-                      +{pred.points_earned}
-                    </span>
-                  ) : (
-                    <span className="w-8" />
-                  )}
+                    {pred.points_earned !== null ? (
+                      <span
+                        className={`min-w-[4.5rem] rounded-md px-2 py-0.5 text-center text-[10px] font-bold ${pointsBadgeColor(
+                          pred.points_earned
+                        )}`}
+                      >
+                        +{pred.points_earned} {pointsLabel(pred.points_earned)}
+                      </span>
+                    ) : (
+                      <span className="w-[4.5rem]" />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
