@@ -28,26 +28,30 @@ async function handleSync(request: Request) {
   );
 
   const authHeader = request.headers.get("authorization");
-  if (authHeader) {
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
-    if (!profile?.is_admin) {
-      return NextResponse.json({ error: "Admin only" }, { status: 403 });
-    }
-  } else {
-    const cronSecret = request.headers.get("x-cron-secret");
-    const isVercelCron = request.headers.get("authorization") === `Bearer ${process.env.CRON_SECRET}`;
-    if (cronSecret !== process.env.CRON_SECRET && !isVercelCron) {
+  const cronSecret = process.env.CRON_SECRET;
+  const xCronSecret = request.headers.get("x-cron-secret");
+  const isCron =
+    (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+    (cronSecret && xCronSecret === cronSecret);
+
+  if (!isCron) {
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(token);
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      if (!profile?.is_admin) {
+        return NextResponse.json({ error: "Admin only" }, { status: 403 });
+      }
+    } else {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
