@@ -8,6 +8,7 @@ import { PredictionForm } from "./prediction-form";
 import { MatchLineCard } from "@/components/match-line";
 import { getFlagUrl } from "@/components/team-name";
 import { Countdown } from "@/components/countdown";
+import Link from "next/link";
 
 export default async function MatchDetailPage({
   params,
@@ -183,14 +184,17 @@ export default async function MatchDetailPage({
                 key={pred.id}
                 className="flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm text-white">
+                <Link
+                  href={`/players/${pred.user_id}`}
+                  className="text-sm text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+                >
                   <span className="font-semibold">{pred.profiles.display_name}</span>
                   {pred.profiles.full_name && (
                     <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
                       ({pred.profiles.full_name})
                     </span>
                   )}
-                </span>
+                </Link>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-bold tabular-nums text-white">
                     {pred.home_score} : {pred.away_score}

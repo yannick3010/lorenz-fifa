@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { LeaderboardEntry } from "@/lib/supabase/types";
+import Link from "next/link";
 
 const RANK_STYLES = [
   "text-[var(--fifa-gold)]",
@@ -62,14 +63,17 @@ export function LiveLeaderboard({
           <span className={`w-6 text-center font-mono text-sm font-bold ${RANK_STYLES[i] ?? "text-[var(--fifa-muted)]"}`}>
             {i + 1}
           </span>
-          <span className="flex-1 min-w-0 truncate text-sm text-white">
+          <Link
+            href={`/players/${entry.user_id}`}
+            className="flex-1 min-w-0 truncate text-sm text-white hover:text-[var(--fifa-blue-light)] transition-colors"
+          >
             <span className="font-semibold">{entry.display_name}</span>
             {entry.full_name && (
               <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
                 ({entry.full_name})
               </span>
             )}
-          </span>
+          </Link>
           <span className="font-mono text-sm font-bold tabular-nums text-white">
             {entry.total_points}
           </span>
