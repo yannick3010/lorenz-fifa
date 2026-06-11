@@ -2,12 +2,13 @@ export const dynamic = "force-dynamic";
 
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import type { Match, LeaderboardEntry } from "@/lib/supabase/types";
+import type { Match, LeaderboardEntry, Prediction } from "@/lib/supabase/types";
 import { LiveMatches } from "@/components/live-matches";
 import { LiveLeaderboard } from "@/components/live-leaderboard";
 import { PredictionReminder } from "@/components/prediction-reminder";
 import { TeamName } from "@/components/team-name";
 import { Countdown } from "@/components/countdown";
+import { pointsBadgeColor, pointsLabel } from "@/lib/scoring";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -41,8 +42,8 @@ export default async function HomePage() {
     .select("*")
     .eq("user_id", user!.id);
 
-  const predictionMap = new Map<number, boolean>();
-  predictions?.forEach((p: { match_id: number }) => predictionMap.set(p.match_id, true));
+  const predictionMap = new Map<number, Prediction>();
+  predictions?.forEach((p: Prediction) => predictionMap.set(p.match_id, p));
 
   const { data: leaderboard } = await supabase
     .from("leaderboard")
@@ -79,7 +80,8 @@ export default async function HomePage() {
         {(upcomingMatches?.length ?? 0) > 0 ? (
           <div className="grid gap-2">
             {upcomingMatches!.map((match: Match) => {
-              const hasPrediction = predictionMap.has(match.id);
+              const pred = predictionMap.get(match.id);
+              const hasPrediction = !!pred;
               const hoursUntil = (new Date(match.kickoff_time).getTime() - Date.now()) / 3_600_000;
               const isUrgent = !hasPrediction && hoursUntil < 24 && hoursUntil > 0;
 
@@ -129,21 +131,47 @@ export default async function HomePage() {
         <section>
           <SectionHeader title="Results" href="/matches" />
           <div className="grid gap-2">
-            {recentResults!.map((match: Match) => (
-              <Link
-                key={match.id}
-                href={`/matches/${match.id}`}
-                className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
-              >
-                <span className="flex justify-end"><TeamName name={match.home_team} /></span>
-                <span className="font-mono text-lg font-black tabular-nums text-white">
-                  {match.home_score}
-                  <span className="mx-1 text-[var(--fifa-muted)]">:</span>
-                  {match.away_score}
-                </span>
-                <span className="flex justify-start"><TeamName name={match.away_team} /></span>
-              </Link>
-            ))}
+            {recentResults!.map((match: Match) => {
+              const pred = predictionMap.get(match.id);
+              return (
+                <Link
+                  key={match.id}
+                  href={`/matches/${match.id}`}
+                  className="rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-3.5 transition active:scale-[0.98]"
+                >
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                    <span className="flex justify-end"><TeamName name={match.home_team} /></span>
+                    <span className="font-mono text-lg font-black tabular-nums text-white">
+                      {match.home_score}
+                      <span className="mx-1 text-[var(--fifa-muted)]">:</span>
+                      {match.away_score}
+                    </span>
+                    <span className="flex justify-start"><TeamName name={match.away_team} /></span>
+                  </div>
+                  {pred && pred.points_earned !== null && (
+                    <div className="mt-2 flex items-center justify-center gap-2 border-t border-[var(--fifa-border)] pt-2">
+                      <span className="text-[10px] text-[var(--fifa-muted)]">
+                        You: {pred.home_score}:{pred.away_score}
+                      </span>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${pointsBadgeColor(
+                          pred.points_earned
+                        )}`}
+                      >
+                        +{pred.points_earned} {pointsLabel(pred.points_earned)}
+                      </span>
+                    </div>
+                  )}
+                  {pred && pred.points_earned === null && (
+                    <div className="mt-2 flex items-center justify-center border-t border-[var(--fifa-border)] pt-2">
+                      <span className="text-[10px] text-[var(--fifa-muted)]">
+                        You: {pred.home_score}:{pred.away_score} — Awaiting score
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
