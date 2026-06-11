@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export function ProfileForm() {
   const supabase = createClient();
+  const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -18,10 +19,13 @@ export function ProfileForm() {
       if (user) {
         const { data } = await supabase
           .from("profiles")
-          .select("display_name")
+          .select("display_name, full_name")
           .eq("id", user.id)
           .single();
-        if (data) setDisplayName(data.display_name);
+        if (data) {
+          setDisplayName(data.display_name);
+          setFullName(data.full_name ?? "");
+        }
       }
       setLoading(false);
     }
@@ -40,7 +44,7 @@ export function ProfileForm() {
     if (user) {
       await supabase
         .from("profiles")
-        .update({ display_name: displayName })
+        .update({ display_name: displayName, full_name: fullName || null })
         .eq("id", user.id);
       setSaved(true);
     }
@@ -57,6 +61,19 @@ export function ProfileForm() {
       onSubmit={handleSave}
       className="max-w-sm rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-5"
     >
+      <div className="mb-4">
+        <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+          Full Name
+        </label>
+        <input
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Your real name"
+          className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
+        />
+      </div>
+
       <div className="mb-4">
         <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
           Display Name

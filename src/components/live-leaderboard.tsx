@@ -62,8 +62,13 @@ export function LiveLeaderboard({
           <span className={`w-6 text-center font-mono text-sm font-bold ${RANK_STYLES[i] ?? "text-[var(--fifa-muted)]"}`}>
             {i + 1}
           </span>
-          <span className="flex-1 truncate text-sm font-semibold text-white">
-            {entry.display_name}
+          <span className="flex-1 min-w-0 truncate text-sm text-white">
+            <span className="font-semibold">{entry.display_name}</span>
+            {entry.full_name && (
+              <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
+                ({entry.full_name})
+              </span>
+            )}
           </span>
           <span className="font-mono text-sm font-bold tabular-nums text-white">
             {entry.total_points}
