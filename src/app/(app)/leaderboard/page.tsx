@@ -62,8 +62,13 @@ export default async function LeaderboardPage() {
                 <span className={`w-8 text-center font-mono text-sm font-bold ${RANK_COLORS[i] ?? "text-[var(--fifa-muted)]"}`}>
                   {i + 1}
                 </span>
-                <span className="flex-1 min-w-0 truncate text-sm font-semibold text-white">
-                  {entry.display_name}
+                <span className="flex-1 min-w-0 truncate text-sm text-white">
+                  <span className="font-semibold">{entry.display_name}</span>
+                  {entry.full_name && (
+                    <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
+                      ({entry.full_name})
+                    </span>
+                  )}
                 </span>
 
                 {/* Desktop stat columns */}
@@ -133,6 +138,11 @@ function PodiumCard({
       <span className="mt-1 w-full truncate text-center text-xs font-bold text-white">
         {entry.display_name}
       </span>
+      {entry.full_name && (
+        <span className="w-full truncate text-center text-[9px] text-[var(--fifa-muted)]">
+          {entry.full_name}
+        </span>
+      )}
       <span className="mt-0.5 font-mono text-lg font-black text-white">
         {entry.total_points}
       </span>

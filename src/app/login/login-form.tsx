@@ -7,6 +7,7 @@ export function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,10 @@ export function LoginForm() {
         email,
         password,
         options: {
-          data: { display_name: displayName || email.split("@")[0] },
+          data: {
+            full_name: fullName,
+            display_name: displayName || email.split("@")[0],
+          },
         },
       });
       if (error) {
@@ -72,18 +76,33 @@ export function LoginForm() {
           </h2>
 
           {isSignUp && (
-            <div className="mb-3">
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
-                Display Name
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
-                placeholder="Your name"
-              />
-            </div>
+            <>
+              <div className="mb-3">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
+                  placeholder="Your real name"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-[var(--fifa-muted)]">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full rounded-lg border border-[var(--fifa-border)] bg-[var(--fifa-surface)] px-4 py-3 text-sm text-white placeholder-[var(--fifa-muted)] focus:border-[var(--fifa-blue)] focus:outline-none focus:ring-1 focus:ring-[var(--fifa-blue)]"
+                  placeholder="Your fun nickname (optional)"
+                />
+              </div>
+            </>
           )}
 
           <div className="mb-3">

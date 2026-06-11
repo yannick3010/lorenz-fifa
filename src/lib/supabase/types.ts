@@ -1,6 +1,7 @@
 export type Profile = {
   id: string;
   display_name: string;
+  full_name: string | null;
   avatar_url: string | null;
   is_admin: boolean;
   created_at: string;
@@ -34,6 +35,7 @@ export type Prediction = {
 export type LeaderboardEntry = {
   user_id: string;
   display_name: string;
+  full_name: string | null;
   avatar_url: string | null;
   total_points: number;
   matches_scored: number;
@@ -60,5 +62,5 @@ export type PredictionWithMatch = Prediction & {
 };
 
 export type PredictionWithUser = Prediction & {
-  profiles: Pick<Profile, "display_name" | "avatar_url">;
+  profiles: Pick<Profile, "display_name" | "full_name" | "avatar_url">;
 };

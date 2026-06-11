@@ -51,7 +51,7 @@ export default async function MatchDetailPage({
   if (isPast) {
     const { data } = await supabase
       .from("predictions")
-      .select("*, profiles(display_name, avatar_url)")
+      .select("*, profiles(display_name, full_name, avatar_url)")
       .eq("match_id", match.id)
       .order("points_earned", { ascending: false });
     allPredictions = (data as PredictionWithUser[]) ?? [];
@@ -183,8 +183,13 @@ export default async function MatchDetailPage({
                 key={pred.id}
                 className="flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm font-semibold text-white">
-                  {pred.profiles.display_name}
+                <span className="text-sm text-white">
+                  <span className="font-semibold">{pred.profiles.display_name}</span>
+                  {pred.profiles.full_name && (
+                    <span className="ml-1.5 text-xs text-[var(--fifa-muted)]">
+                      ({pred.profiles.full_name})
+                    </span>
+                  )}
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-sm font-bold tabular-nums text-white">
