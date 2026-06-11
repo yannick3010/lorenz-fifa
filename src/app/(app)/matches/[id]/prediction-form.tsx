@@ -20,6 +20,7 @@ export function PredictionForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(!existingPrediction);
   const router = useRouter();
   const supabase = createClient();
 
@@ -27,7 +28,6 @@ export function PredictionForm({
     value: string,
     setter: (next: string) => void
   ) {
-    // Strip anything that isn't a digit so the field stays numeric.
     const digits = value.replace(/\D/g, "");
     if (digits === "") {
       setter("");
@@ -78,10 +78,62 @@ export function PredictionForm({
       );
     } else {
       setSaved(true);
+      setEditing(false);
       router.refresh();
     }
 
     setSaving(false);
+  }
+
+  if (!editing) {
+    return (
+      <div className="rounded-xl border border-[var(--fifa-green)]/30 bg-[var(--fifa-green)]/5 p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--fifa-green)]">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="white"
+                className="h-3 w-3"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </span>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-green)]">
+              Pick locked in
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-[11px] font-semibold text-[var(--fifa-muted)] transition hover:text-white"
+          >
+            Edit
+          </button>
+        </div>
+
+        <div className="flex items-center justify-center gap-5">
+          <span className="font-mono text-3xl font-black tabular-nums text-white">
+            {homeScore}
+          </span>
+          <span className="font-mono text-xl text-[var(--fifa-muted)]">:</span>
+          <span className="font-mono text-3xl font-black tabular-nums text-white">
+            {awayScore}
+          </span>
+        </div>
+
+        {saved && (
+          <p className="mt-3 text-center text-xs text-[var(--fifa-green)]">
+            Prediction updated
+          </p>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -89,9 +141,25 @@ export function PredictionForm({
       onSubmit={handleSubmit}
       className="rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-5"
     >
-      <p className="mb-4 text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
-        {existingPrediction ? "Update prediction" : "Make your prediction"}
-      </p>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
+          {existingPrediction ? "Edit prediction" : "Make your prediction"}
+        </p>
+        {existingPrediction && (
+          <button
+            type="button"
+            onClick={() => {
+              setHomeScore(String(existingPrediction.home_score));
+              setAwayScore(String(existingPrediction.away_score));
+              setEditing(false);
+              setError(null);
+            }}
+            className="text-[11px] font-semibold text-[var(--fifa-muted)] transition hover:text-white"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
 
       <div className="flex items-center justify-center gap-5">
         <div className="text-center">
@@ -132,12 +200,6 @@ export function PredictionForm({
       {error && (
         <div className="mt-4 rounded-lg border border-[var(--fifa-red)]/30 bg-[var(--fifa-red)]/10 p-3 text-center text-sm text-[var(--fifa-red)]">
           {error}
-        </div>
-      )}
-
-      {saved && (
-        <div className="mt-4 rounded-lg border border-[var(--fifa-green)]/30 bg-[var(--fifa-green)]/10 p-3 text-center text-sm text-[var(--fifa-green)]">
-          Prediction saved
         </div>
       )}
 
