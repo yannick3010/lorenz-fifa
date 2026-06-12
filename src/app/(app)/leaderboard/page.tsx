@@ -18,6 +18,21 @@ export default async function LeaderboardPage() {
     .select("*")
     .order("total_points", { ascending: false });
 
+  // PGA-style ranking: players with the same score share a position (T1, T1, ...),
+  // and the next player drops by the number of players tied above them.
+  const entries: LeaderboardEntry[] = leaderboard ?? [];
+  const ranks = entries.map((entry: LeaderboardEntry) => {
+    const position =
+      entries.findIndex(
+        (e: LeaderboardEntry) => e.total_points === entry.total_points,
+      ) + 1;
+    const tied =
+      entries.filter(
+        (e: LeaderboardEntry) => e.total_points === entry.total_points,
+      ).length > 1;
+    return { position, tied };
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -29,19 +44,6 @@ export default async function LeaderboardPage() {
 
       {(leaderboard?.length ?? 0) > 0 ? (
         <>
-          {/* Top 3 podium on mobile */}
-          {leaderboard!.length >= 1 && (
-            <div className="flex items-end justify-center gap-3 py-2 md:hidden">
-              {leaderboard!.length >= 2 && (
-                <PodiumCard entry={leaderboard![1]} rank={2} height="h-20" />
-              )}
-              <PodiumCard entry={leaderboard![0]} rank={1} height="h-28" />
-              {leaderboard!.length >= 3 && (
-                <PodiumCard entry={leaderboard![2]} rank={3} height="h-16" />
-              )}
-            </div>
-          )}
-
           {/* Full table */}
           <div className="divide-y divide-[var(--fifa-border)] rounded-xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] overflow-hidden">
             {/* Header - desktop only */}
@@ -60,8 +62,8 @@ export default async function LeaderboardPage() {
                 key={entry.user_id}
                 className="flex items-center gap-2 px-4 py-3.5"
               >
-                <span className={`w-8 text-center font-mono text-sm font-bold ${RANK_COLORS[i] ?? "text-[var(--fifa-muted)]"}`}>
-                  {i + 1}
+                <span className={`w-8 text-center font-mono text-sm font-bold ${RANK_COLORS[ranks[i].position - 1] ?? "text-[var(--fifa-muted)]"}`}>
+                  {ranks[i].tied ? `T${ranks[i].position}` : ranks[i].position}
                 </span>
                 <Link
                   href={`/players/${entry.user_id}`}
@@ -111,48 +113,6 @@ export default async function LeaderboardPage() {
           No scores yet. Make some predictions and check back once matches finish!
         </p>
       )}
-    </div>
-  );
-}
-
-function PodiumCard({
-  entry,
-  rank,
-  height,
-}: {
-  entry: LeaderboardEntry;
-  rank: number;
-  height: string;
-}) {
-  const colors = {
-    1: "border-[var(--fifa-gold)]/40 bg-[var(--fifa-gold)]/5",
-    2: "border-[var(--fifa-silver)]/30 bg-[var(--fifa-silver)]/5",
-    3: "border-[var(--fifa-bronze)]/30 bg-[var(--fifa-bronze)]/5",
-  };
-
-  return (
-    <div
-      className={`flex w-24 flex-col items-center justify-end rounded-xl border ${
-        colors[rank as keyof typeof colors]
-      } ${height} px-2 pb-3`}
-    >
-      <span className={`font-mono text-xs font-bold ${RANK_COLORS[rank - 1]}`}>
-        {rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd"}
-      </span>
-      <Link
-        href={`/players/${entry.user_id}`}
-        className="mt-1 w-full truncate text-center text-xs font-bold text-white hover:text-[var(--fifa-blue-light)] transition-colors"
-      >
-        {entry.display_name}
-      </Link>
-      {entry.full_name && (
-        <span className="w-full truncate text-center text-[9px] text-[var(--fifa-muted)]">
-          {entry.full_name}
-        </span>
-      )}
-      <span className="mt-0.5 font-mono text-lg font-black text-white">
-        {entry.total_points}
-      </span>
     </div>
   );
 }
