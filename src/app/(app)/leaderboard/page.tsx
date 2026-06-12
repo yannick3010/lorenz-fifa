@@ -16,20 +16,21 @@ export default async function LeaderboardPage() {
   const { data: leaderboard } = await supabase
     .from("leaderboard")
     .select("*")
-    .order("total_points", { ascending: false });
+    .order("total_points", { ascending: false })
+    .order("exact_scores", { ascending: false });
 
   // PGA-style ranking: players with the same score share a position (T1, T1, ...),
-  // and the next player drops by the number of players tied above them.
+  // and the next player drops by the number of players tied above them. Ties are
+  // broken by number of exact scores, so players only share a position when both
+  // their total points and exact-score counts match.
   const entries: LeaderboardEntry[] = leaderboard ?? [];
+  const sameRank = (a: LeaderboardEntry, b: LeaderboardEntry) =>
+    a.total_points === b.total_points && a.exact_scores === b.exact_scores;
   const ranks = entries.map((entry: LeaderboardEntry) => {
     const position =
-      entries.findIndex(
-        (e: LeaderboardEntry) => e.total_points === entry.total_points,
-      ) + 1;
+      entries.findIndex((e: LeaderboardEntry) => sameRank(e, entry)) + 1;
     const tied =
-      entries.filter(
-        (e: LeaderboardEntry) => e.total_points === entry.total_points,
-      ).length > 1;
+      entries.filter((e: LeaderboardEntry) => sameRank(e, entry)).length > 1;
     return { position, tied };
   });
 
