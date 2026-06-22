@@ -8,6 +8,8 @@ import { PredictionForm } from "./prediction-form";
 import { MatchLineCard } from "@/components/match-line";
 import { getFlagUrl } from "@/components/team-name";
 import { Countdown } from "@/components/countdown";
+import { MatchNav, type NavTarget } from "@/components/match-nav";
+import { pickUrgency } from "@/lib/urgency";
 import Link from "next/link";
 
 export default async function MatchDetailPage({
@@ -39,6 +41,48 @@ export default async function MatchDetailPage({
 
   const isPast = new Date(match.kickoff_time) <= new Date();
 
+  // Smooth picking flow: jump straight to the next/previous match the user
+  // still hasn't picked, skipping anything already picked or already kicked off.
+  const { data: navMatches } = await supabase
+    .from("matches")
+    .select("id, kickoff_time")
+    .order("kickoff_time", { ascending: true })
+    .order("id", { ascending: true });
+
+  const { data: myPredictions } = await supabase
+    .from("predictions")
+    .select("match_id")
+    .eq("user_id", user!.id);
+
+  const pickedIds = new Set(
+    (myPredictions ?? []).map((p: { match_id: number }) => p.match_id)
+  );
+
+  const ordered = navMatches ?? [];
+  const now = Date.now();
+  const isUnpickedPickable = (m: { id: number; kickoff_time: string }) =>
+    new Date(m.kickoff_time).getTime() > now && !pickedIds.has(m.id);
+
+  const currentIdx = ordered.findIndex((m) => m.id === match.id);
+
+  let nextTarget: NavTarget = null;
+  for (let i = currentIdx + 1; i < ordered.length; i++) {
+    if (isUnpickedPickable(ordered[i])) {
+      nextTarget = { id: ordered[i].id, urgency: pickUrgency(ordered[i].kickoff_time, false) };
+      break;
+    }
+  }
+
+  let prevTarget: NavTarget = null;
+  for (let i = currentIdx - 1; i >= 0; i--) {
+    if (isUnpickedPickable(ordered[i])) {
+      prevTarget = { id: ordered[i].id, urgency: pickUrgency(ordered[i].kickoff_time, false) };
+      break;
+    }
+  }
+
+  const headerUrgency = pickUrgency(match.kickoff_time, !!myPrediction);
+
   // Estimated line from the crowd's picks (aggregate only -- see get_match_line).
   let line: MatchLine | null = null;
   if (!isPast) {
@@ -67,25 +111,46 @@ export default async function MatchDetailPage({
   return (
     <div className="space-y-6">
       {/* Match header */}
-      <div className="rounded-2xl border border-[var(--fifa-border)] bg-[var(--fifa-panel)] p-5">
+      <div
+        className={`rounded-2xl border p-5 ${
+          headerUrgency === "urgent"
+            ? "border-[var(--fifa-red)]/60 bg-[var(--fifa-red)]/5"
+            : headerUrgency === "soon"
+              ? "border-amber-500/60 bg-amber-500/5"
+              : "border-[var(--fifa-border)] bg-[var(--fifa-panel)]"
+        }`}
+      >
         <div className="mb-1 flex items-center justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-muted)]">
             {match.round}
             {match.match_group ? ` — Group ${match.match_group}` : ""}
           </span>
-          {isLive && (
-            <span className="flex items-center gap-1.5">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--fifa-red)] opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--fifa-red)]" />
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--fifa-red)] opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--fifa-red)]" />
+                </span>
+                <span className="text-[10px] font-bold uppercase text-[var(--fifa-red)]">Live</span>
               </span>
-              <span className="text-[10px] font-bold uppercase text-[var(--fifa-red)]">Live</span>
-            </span>
-          )}
-          {isFinished && (
-            <span className="text-[10px] font-bold uppercase text-[var(--fifa-muted)]">Final</span>
-          )}
-          {!isPast && <Countdown kickoff={match.kickoff_time} />}
+            )}
+            {isFinished && (
+              <span className="text-[10px] font-bold uppercase text-[var(--fifa-muted)]">Final</span>
+            )}
+            {headerUrgency !== "none" && (
+              <span
+                className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                  headerUrgency === "urgent"
+                    ? "bg-[var(--fifa-red)]/15 text-[var(--fifa-red)]"
+                    : "bg-amber-500/15 text-amber-300"
+                }`}
+              >
+                Not picked
+              </span>
+            )}
+            {!isPast && <Countdown kickoff={match.kickoff_time} />}
+          </div>
         </div>
 
         <div className="flex items-center justify-between py-5">
@@ -250,6 +315,9 @@ export default async function MatchDetailPage({
           No prediction made for this match.
         </p>
       )}
+
+      {/* Jump to the next/previous match still awaiting a pick */}
+      <MatchNav prev={prevTarget} next={nextTarget} />
     </div>
   );
 }
