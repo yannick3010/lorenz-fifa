@@ -84,11 +84,19 @@ async function handleSync(request: Request) {
       external_id: m.id,
       round: m.stage?.replace(/_/g, " ") ?? m.matchday?.toString() ?? "Unknown",
       match_group: m.group?.replace("GROUP_", "") ?? null,
-      home_team: m.homeTeam?.name ?? "TBD",
-      away_team: m.awayTeam?.name ?? "TBD",
       kickoff_time: m.utcDate,
       status: m.status,
     };
+
+    // Only write team names when the API actually knows them. Knockout fixtures
+    // arrive with null teams until the bracket resolves; writing "TBD" over an
+    // already-known matchup would wipe it on every sync. Omitting the columns
+    // preserves existing values on conflict and falls back to the 'TBD' column
+    // default for brand-new rows.
+    const apiHomeTeam = m.homeTeam?.name ?? null;
+    const apiAwayTeam = m.awayTeam?.name ?? null;
+    if (apiHomeTeam) matchData.home_team = apiHomeTeam;
+    if (apiAwayTeam) matchData.away_team = apiAwayTeam;
 
     if (apiHomeScore !== null && apiAwayScore !== null) {
       matchData.home_score = apiHomeScore;
