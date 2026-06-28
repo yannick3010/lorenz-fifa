@@ -76,19 +76,35 @@ async function handleSync(request: Request) {
   let scored = 0;
 
   for (const m of matches) {
-    const ft = m.score?.fullTime;
-    const apiHomeScore = ft?.home ?? ft?.homeTeam ?? null;
-    const apiAwayScore = ft?.away ?? ft?.awayTeam ?? null;
+    // Score the 90-minute (regulation) result everywhere: in knockout games the
+    // API's fullTime folds in extra-time and shootout goals, which we don't want
+    // to display or score against. regularTime only appears once a match goes to
+    // extra time, so fall back to fullTime for everything decided in 90.
+    const score = m.score ?? {};
+    const reg = score.regularTime ?? score.fullTime ?? {};
+    const apiHomeScore = reg?.home ?? reg?.homeTeam ?? null;
+    const apiAwayScore = reg?.away ?? reg?.awayTeam ?? null;
 
     const matchData: Record<string, unknown> = {
       external_id: m.id,
       round: m.stage?.replace(/_/g, " ") ?? m.matchday?.toString() ?? "Unknown",
       match_group: m.group?.replace("GROUP_", "") ?? null,
-      home_team: m.homeTeam?.name ?? "TBD",
-      away_team: m.awayTeam?.name ?? "TBD",
       kickoff_time: m.utcDate,
       status: m.status,
+      // Used to score knockouts (who advanced + whether it went past 90).
+      winner: score.winner ?? null,
+      duration: score.duration ?? null,
     };
+
+    // Only write team names when the API actually knows them. Knockout fixtures
+    // arrive with null teams until the bracket resolves; writing "TBD" over an
+    // already-known matchup would wipe it on every sync. Omitting the columns
+    // preserves existing values on conflict and falls back to the 'TBD' column
+    // default for brand-new rows.
+    const apiHomeTeam = m.homeTeam?.name ?? null;
+    const apiAwayTeam = m.awayTeam?.name ?? null;
+    if (apiHomeTeam) matchData.home_team = apiHomeTeam;
+    if (apiAwayTeam) matchData.away_team = apiAwayTeam;
 
     if (apiHomeScore !== null && apiAwayScore !== null) {
       matchData.home_score = apiHomeScore;
