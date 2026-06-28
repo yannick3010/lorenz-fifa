@@ -4,12 +4,24 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
+type AdvancePick = "HOME" | "AWAY";
+
 export function PredictionForm({
   matchId,
+  isKnockout,
+  homeTeam,
+  awayTeam,
   existingPrediction,
 }: {
   matchId: number;
-  existingPrediction: { home_score: number; away_score: number } | null;
+  isKnockout: boolean;
+  homeTeam: string;
+  awayTeam: string;
+  existingPrediction: {
+    home_score: number;
+    away_score: number;
+    advance_pick: AdvancePick | null;
+  } | null;
 }) {
   const [homeScore, setHomeScore] = useState(
     existingPrediction ? String(existingPrediction.home_score) : ""
@@ -17,12 +29,20 @@ export function PredictionForm({
   const [awayScore, setAwayScore] = useState(
     existingPrediction ? String(existingPrediction.away_score) : ""
   );
+  const [advancePick, setAdvancePick] = useState<AdvancePick | null>(
+    existingPrediction?.advance_pick ?? null
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(!existingPrediction);
   const router = useRouter();
   const supabase = createClient();
+
+  // A knockout draw can't stand: the user must also say who goes through.
+  const isDraw =
+    homeScore !== "" && awayScore !== "" && homeScore === awayScore;
+  const needsAdvancePick = isKnockout && isDraw;
 
   function handleScoreChange(
     value: string,
@@ -47,6 +67,11 @@ export function PredictionForm({
       return;
     }
 
+    if (needsAdvancePick && !advancePick) {
+      setError("It's a draw — pick which team advances.");
+      return;
+    }
+
     setSaving(true);
 
     const {
@@ -65,6 +90,8 @@ export function PredictionForm({
         match_id: matchId,
         home_score: parseInt(homeScore, 10),
         away_score: parseInt(awayScore, 10),
+        // Only meaningful for a knockout draw; cleared otherwise.
+        advance_pick: needsAdvancePick ? advancePick : null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,match_id" }
@@ -127,6 +154,12 @@ export function PredictionForm({
           </span>
         </div>
 
+        {needsAdvancePick && advancePick && (
+          <p className="mt-3 text-center text-xs font-semibold text-[var(--fifa-green)]">
+            {advancePick === "HOME" ? homeTeam : awayTeam} to advance
+          </p>
+        )}
+
         {saved && (
           <p className="mt-3 text-center text-xs text-[var(--fifa-green)]">
             Prediction updated
@@ -151,6 +184,7 @@ export function PredictionForm({
             onClick={() => {
               setHomeScore(String(existingPrediction.home_score));
               setAwayScore(String(existingPrediction.away_score));
+              setAdvancePick(existingPrediction.advance_pick);
               setEditing(false);
               setError(null);
             }}
@@ -196,6 +230,34 @@ export function PredictionForm({
           />
         </div>
       </div>
+
+      {needsAdvancePick && (
+        <div className="mt-5 rounded-lg border border-[var(--fifa-blue)]/30 bg-[var(--fifa-blue)]/5 p-4">
+          <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--fifa-blue-light)]">
+            Draw after 90′ — who advances?
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {(["HOME", "AWAY"] as const).map((side) => {
+              const team = side === "HOME" ? homeTeam : awayTeam;
+              const selected = advancePick === side;
+              return (
+                <button
+                  key={side}
+                  type="button"
+                  onClick={() => setAdvancePick(side)}
+                  className={`rounded-lg border px-3 py-2.5 text-sm font-bold transition active:scale-[0.98] ${
+                    selected
+                      ? "border-[var(--fifa-blue)] bg-[var(--fifa-blue)] text-white"
+                      : "border-[var(--fifa-border)] bg-[var(--fifa-surface)] text-[var(--fifa-muted)] hover:text-white"
+                  }`}
+                >
+                  {team}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 rounded-lg border border-[var(--fifa-red)]/30 bg-[var(--fifa-red)]/10 p-3 text-center text-sm text-[var(--fifa-red)]">

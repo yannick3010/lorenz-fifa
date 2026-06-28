@@ -105,6 +105,23 @@ export default async function MatchDetailPage({
   const isLive = ["IN_PLAY", "PAUSED", "HALFTIME"].includes(match.status);
   const isFinished = match.status === "FINISHED";
 
+  // Knockout games carry an advancer pick and can be decided past 90 minutes.
+  const isKnockout = match.match_group === null;
+  const advancerTeam =
+    match.winner === "HOME_TEAM"
+      ? match.home_team
+      : match.winner === "AWAY_TEAM"
+        ? match.away_team
+        : null;
+  const decidedBeyond =
+    match.duration === "PENALTY_SHOOTOUT"
+      ? "on penalties"
+      : match.duration === "EXTRA_TIME"
+        ? "after extra time"
+        : null;
+  const advancerLabel = (pick: "HOME" | "AWAY") =>
+    pick === "HOME" ? match.home_team : match.away_team;
+
   const homeFlag = getFlagUrl(match.home_team);
   const awayFlag = getFlagUrl(match.away_team);
 
@@ -194,11 +211,15 @@ export default async function MatchDetailPage({
       {!isPast && (
         <PredictionForm
           matchId={match.id}
+          isKnockout={isKnockout}
+          homeTeam={match.home_team}
+          awayTeam={match.away_team}
           existingPrediction={
             myPrediction
               ? {
                   home_score: myPrediction.home_score,
                   away_score: myPrediction.away_score,
+                  advance_pick: myPrediction.advance_pick,
                 }
               : null
           }
@@ -230,9 +251,16 @@ export default async function MatchDetailPage({
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-2xl font-black tabular-nums text-white">
-                {myPrediction.home_score} : {myPrediction.away_score}
-              </span>
+              <div>
+                <span className="font-mono text-2xl font-black tabular-nums text-white">
+                  {myPrediction.home_score} : {myPrediction.away_score}
+                </span>
+                {myPrediction.advance_pick && (
+                  <p className="mt-0.5 text-[11px] font-semibold text-[var(--fifa-muted)]">
+                    {advancerLabel(myPrediction.advance_pick)} to advance
+                  </p>
+                )}
+              </div>
               {myPrediction.points_earned !== null && (
                 <span
                   className={`rounded-md px-2.5 py-1 text-xs font-bold ${pointsBadgeColor(
@@ -249,6 +277,11 @@ export default async function MatchDetailPage({
                 <p className="font-mono text-lg font-bold tabular-nums text-[var(--fifa-muted)]">
                   {match.home_score} : {match.away_score}
                 </p>
+                {isKnockout && advancerTeam && decidedBeyond && (
+                  <p className="mt-0.5 text-[10px] font-semibold text-[var(--fifa-muted)]">
+                    {advancerTeam} won {decidedBeyond}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -288,9 +321,16 @@ export default async function MatchDetailPage({
                     )}
                   </Link>
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-bold tabular-nums text-white">
-                      {pred.home_score} : {pred.away_score}
-                    </span>
+                    <div className="text-right">
+                      <span className="font-mono text-sm font-bold tabular-nums text-white">
+                        {pred.home_score} : {pred.away_score}
+                      </span>
+                      {pred.advance_pick && (
+                        <p className="text-[10px] font-medium text-[var(--fifa-muted)]">
+                          {advancerLabel(pred.advance_pick)} adv.
+                        </p>
+                      )}
+                    </div>
                     {pred.points_earned !== null ? (
                       <span
                         className={`min-w-[4.5rem] rounded-md px-2 py-0.5 text-center text-[10px] font-bold ${pointsBadgeColor(

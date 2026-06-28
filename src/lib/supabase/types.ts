@@ -18,8 +18,15 @@ export type Match = {
   away_score: number | null;
   kickoff_time: string;
   status: string;
+  // Knockout result metadata from the football-data API. winner is the team
+  // that advanced; duration tells us whether the match went past 90 minutes.
+  // home_score/away_score always hold the 90-minute (regulation) score.
+  winner: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
+  duration: "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT" | null;
   created_at: string;
 };
+
+export type AdvancePick = "HOME" | "AWAY";
 
 export type Prediction = {
   id: number;
@@ -27,6 +34,9 @@ export type Prediction = {
   match_id: number;
   home_score: number;
   away_score: number;
+  // For a knockout draw prediction, which team the user picked to advance.
+  // Null for decisive picks and all group-stage predictions.
+  advance_pick: AdvancePick | null;
   points_earned: number | null;
   created_at: string;
   updated_at: string;
