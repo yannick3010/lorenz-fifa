@@ -91,10 +91,15 @@ async function handleSync(request: Request) {
       match_group: m.group?.replace("GROUP_", "") ?? null,
       kickoff_time: m.utcDate,
       status: m.status,
-      // Used to score knockouts (who advanced + whether it went past 90).
-      winner: score.winner ?? null,
-      duration: score.duration ?? null,
     };
+
+    // Used to score knockouts (who advanced + whether it went past 90). Only
+    // write these when the API actually reports them: it sometimes returns a
+    // null winner even for a decided shootout, and blanking a known result
+    // would re-zero everyone's points on the next sync. (A DB trigger enforces
+    // the same rule as a backstop -- see 00006_preserve_match_result.)
+    if (score.winner) matchData.winner = score.winner;
+    if (score.duration) matchData.duration = score.duration;
 
     // Only write team names when the API actually knows them. Knockout fixtures
     // arrive with null teams until the bracket resolves; writing "TBD" over an
